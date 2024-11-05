@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Encryption Tool</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" url="https://cdn.glitch.global/bcd688e8-459f-4300-b102-51a1699bb7ab/sucrit.png?v=1730751720114">
+    <style>
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: "Courier New", Courier, monospace;
+            text-align: center;
+            padding: 20px;
+            overflow: hidden;
+            animation: fadeBg 5s infinite alternate;
+        }
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('sucrit.png'); /* ضع هنا رابط رمز الأنونيموس */
+            background-size: cover;
+            background-position: center;
+            opacity: 0.05;
+            filter: blur(4px);
+            z-index: -1;
+        }
+        h2, h3 {
+            text-shadow: 0px 0px 8px #f00;
+            opacity: 0;
+            animation: fadeIn 2s forwards;
+        }
+        input, button, select {
+            background-color: #222;
+            color: #0f0;
+            border: 2px solid #f00;
+            padding: 10px;
+            margin: 10px 0;
+            width: 80%;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.5s ease-in-out;
+        }
+        button:hover {
+            background-color: #f00;
+            color: #000;
+            cursor: pointer;
+        }
+        .output, .generator-output {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #111;
+            border: 2px solid #f00;
+            color: #0f0;
+            word-break: break-all;
+        }
+        .typing {
+            border-right: 2px solid #0f0;
+            animation: blink 0.5s step-end infinite alternate;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes blink {
+            from { border-right-color: #0f0; }
+            to { border-right-color: transparent; }
+        }
+        @keyframes fadeBg {
+            0% { background-color: #000; }
+            100% { background-color: #222; }
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <h2><i class="fas fa-shield-alt"></i> Multi-Encryption Tool</h2>
+
+    <label for="decodeType"><i class="fas fa-lock-open"></i> Choose Decryption Type:</label>
+    <select id="decodeType" onchange="selectAnimation()">
+        <option value="base64">Base64</option>
+        <option value="hex">Hex</option>
+        <option value="rot13">ROT13</option>
+    </select>
+    <input type="text" id="inputText" placeholder="Enter encoded text here">
+    <button onclick="decodeText()"><i class="fas fa-unlock"></i> Decrypt</button>
+    
+    <h3><i class="fas fa-key"></i> Result:</h3>
+    <div class="output" id="resultMessage">Message: </div>
+
+    <h3><i class="fas fa-code"></i> Code Generator</h3>
+    <label for="encodeType"><i class="fas fa-lock"></i> Choose Encryption Type:</label>
+    <select id="encodeType" onchange="selectAnimation()">
+        <option value="base64">Base64</option>
+        <option value="hex">Hex</option>
+        <option value="rot13">ROT13</option>
+    </select>
+    <input type="text" id="hiddenMessage" placeholder="Enter message">
+    <button onclick="generateCode()"><i class="fas fa-lock"></i> Generate Code</button>
+    <div class="generator-output" id="generatedCode">Code: </div>
+
+    <script>
+        function typingEffect(element, text) {
+            let index = 0;
+            element.textContent = '';
+            const interval = setInterval(() => {
+                element.textContent += text[index];
+                element.classList.add('typing');
+                index++;
+                if (index === text.length) {
+                    clearInterval(interval);
+                    element.classList.remove('typing');
+                }
+            }, 100);
+        }
+
+        function selectAnimation() {
+            const selectElements = document.querySelectorAll("select");
+            selectElements.forEach((select) => {
+                select.style.transform = "scale(1.1)";
+                setTimeout(() => {
+                    select.style.transform = "scale(1)";
+                }, 200);
+            });
+        }
+
+        function decodeText() {
+            const inputText = document.getElementById("inputText").value;
+            const decodeType = document.getElementById("decodeType").value;
+            let decodedMessage = "";
+
+            switch(decodeType) {
+                case "base64":
+                    decodedMessage = decodeBase64(inputText);
+                    break;
+                case "hex":
+                    decodedMessage = decodeHex(inputText);
+                    break;
+                case "rot13":
+                    decodedMessage = decodeROT13(inputText);
+                    break;
+                default:
+                    decodedMessage = "Unsupported encoding type";
+            }
+
+            typingEffect(document.getElementById("resultMessage"), `Message: ${decodedMessage}`);
+        }
+
+        function generateCode() {
+            const message = document.getElementById("hiddenMessage").value;
+            const encodeType = document.getElementById("encodeType").value;
+            let encodedMessage = "";
+
+            switch(encodeType) {
+                case "base64":
+                    encodedMessage = encodeBase64(message);
+                    break;
+                case "hex":
+                    encodedMessage = encodeHex(message);
+                    break;
+                case "rot13":
+                    encodedMessage = encodeROT13(message);
+                    break;
+                default:
+                    encodedMessage = "Unsupported encoding type";
+            }
+
+            typingEffect(document.getElementById("generatedCode"), `Code: ${encodedMessage}`);
+        }
+
+        function encodeBase64(text) {
+            return btoa(unescape(encodeURIComponent(text)));
+        }
+
+        function decodeBase64(text) {
+            try {
+                return decodeURIComponent(escape(atob(text)));
+            } catch (e) {
+                return "Decryption failed";
+            }
+        }
+
+        function encodeHex(text) {
+            return text.split('').map(char => char.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+        }
+
+        function decodeHex(text) {
+            try {
+                return text.match(/.{1,2}/g).map(byte => String.fromCharCode(parseInt(byte, 16))).join('');
+            } catch (e) {
+                return "Decryption failed";
+            }
+        }
+
+        function encodeROT13(text) {
+            return text.replace(/[A-Za-z]/g, c =>
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".charAt(
+                    "NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm".indexOf(c)
+                )
+            );
+        }
+
+        function decodeROT13(text) {
+            return encodeROT13(text);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('input, button, select');
+            inputs.forEach((input, index) => {
+                setTimeout(() => {
+                    input.style.opacity = '1';
+                    input.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>
